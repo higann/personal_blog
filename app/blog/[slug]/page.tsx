@@ -3,6 +3,7 @@ import { getPostBySlug, getAllPosts } from '@/lib/blog'
 import { format } from 'date-fns'
 import { remark } from 'remark'
 import html from 'remark-html'
+import Image from 'next/image'
 import type { Metadata } from 'next'
 
 interface BlogPostPageProps {
@@ -84,10 +85,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
         {post.featuredImage && (
           <div className="relative h-64 md:h-96 w-full mb-8 rounded-retro-lg overflow-hidden">
-            <img
+            <Image
               src={post.featuredImage}
               alt={post.title}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         )}

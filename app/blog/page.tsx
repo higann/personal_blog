@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
+import Image from 'next/image'
 
 interface BlogPost {
   slug: string
@@ -73,10 +74,11 @@ export default function BlogPage() {
                 >
                   {post.featuredImage && (
                     <div className="relative h-48 w-full overflow-hidden rounded-t-retro-lg">
-                      <img
+                      <Image
                         src={post.featuredImage}
                         alt={post.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     </div>
                   )}

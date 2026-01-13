@@ -16,7 +16,7 @@ export default function AboutPage() {
         <div className="prose prose-lg max-w-none">
           <div className="bg-background-alt p-8 rounded-retro-lg retro-shadow mb-8">
             <p className="text-lg text-text-light mb-6">
-              Welcome to my personal website! I'm passionate about creating meaningful content,
+              Welcome to my personal website! I&apos;m passionate about creating meaningful content,
               sharing knowledge, and connecting with like-minded individuals.
             </p>
             <p className="text-lg text-text-light mb-6">
@@ -24,7 +24,7 @@ export default function AboutPage() {
               and written thoughts on various topics that interest me.
             </p>
             <p className="text-lg text-text-light">
-              Feel free to explore my content and reach out if you'd like to connect!
+              Feel free to explore my content and reach out if you&apos;d like to connect!
             </p>
           </div>
 
