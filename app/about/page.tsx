@@ -17,7 +17,7 @@ export default function AboutPage() {
           <div className="bg-background-alt p-8 rounded-retro-lg retro-shadow mb-8">
             <p className="text-lg text-text-light mb-6">
               Welcome to my personal website! I&apos;m passionate about creating meaningful content,
-              sharing knowledge, and connecting with like-minded individuals. cultivate
+              sharing knowledge, and connecting with like-minded individuals. 
             </p>
             <p className="text-lg text-text-light mb-6">
               This space serves as a hub for my creative work, including videos, photography,
