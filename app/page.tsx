@@ -16,7 +16,7 @@ export default function Home() {
           Welcome
         </h1>
         <p className="text-xl text-text-light text-center mb-12 max-w-2xl mx-auto">
-          Explore my work, thoughts, and creative journey through videos, photos, and blog posts.
+          Explore, thoughts, and creative journey through videos, photos, and blog posts.
         </p>
 
         <div className="grid md:grid-cols-2 gap-6 mt-12">
