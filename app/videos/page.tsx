@@ -15,10 +15,10 @@ interface Video {
 // Example video data - replace with actual YouTube API integration
 const exampleVideos: Video[] = [
   {
-    id: 'dQw4w9WgXcQ',
+    id: 'F64yFFnZfkI',
     title: 'Example Video 1',
     description: 'This is an example video description.',
-    thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/F64yFFnZfkI/hqdefault.jpg',
     publishedAt: '2024-01-15',
   },
   {
