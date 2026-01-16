@@ -18,7 +18,7 @@ const exampleVideos: Video[] = [
     id: 'dQw4w9WgXcQ',
     title: 'Example Video 1',
     description: 'This is an example video description.',
-    thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+    thumbnail: 'https://img.youtu.be/F64yFFnZfkI?list=RDF64yFFnZfkI.jpg',
     publishedAt: '2024-01-15',
   },
   {
