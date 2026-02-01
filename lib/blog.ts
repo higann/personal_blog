@@ -4,6 +4,24 @@ import matter from 'gray-matter'
 
 const postsDirectory = path.join(process.cwd(), 'content', 'blog')
 
+/**
+ * Validate that a file path is within the posts directory
+ * Prevents path traversal attacks
+ */
+function validatePath(filePath: string, baseDir: string = postsDirectory): boolean {
+  const resolvedPath = path.resolve(filePath)
+  const resolvedBase = path.resolve(baseDir)
+  return resolvedPath.startsWith(resolvedBase)
+}
+
+/**
+ * Sanitize slug to prevent path traversal
+ */
+function sanitizeSlug(slug: string): string {
+  // Remove any path separators and dangerous characters
+  return slug.replace(/[\/\\\.\.]/g, '').replace(/[^a-zA-Z0-9-_]/g, '')
+}
+
 export interface BlogPost {
   slug: string
   title: string
@@ -25,8 +43,17 @@ export function getAllPosts(): BlogPost[] {
     const allPostsData = fileNames
       .filter((name) => name.endsWith('.mdx') || name.endsWith('.md'))
       .map((fileName) => {
-        const slug = fileName.replace(/\.(mdx|md)$/, '')
-        const fullPath = path.join(postsDirectory, fileName)
+        // Sanitize filename to prevent path traversal
+        const sanitizedFileName = path.basename(fileName)
+        const slug = sanitizedFileName.replace(/\.(mdx|md)$/, '')
+        const fullPath = path.join(postsDirectory, sanitizedFileName)
+        
+        // Validate path is within posts directory
+        if (!validatePath(fullPath)) {
+          console.warn(`Skipping invalid path: ${fullPath}`)
+          return null
+        }
+        
         const fileContents = fs.readFileSync(fullPath, 'utf8')
         const { data, content } = matter(fileContents)
 
@@ -41,6 +68,7 @@ export function getAllPosts(): BlogPost[] {
           readingTime: calculateReadingTime(content),
         }
       })
+      .filter((post): post is BlogPost => post !== null)
 
     return allPostsData.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -53,16 +81,36 @@ export function getAllPosts(): BlogPost[] {
 
 export function getPostBySlug(slug: string): BlogPost | null {
   try {
-    const fullPath = path.join(postsDirectory, `${slug}.mdx`)
+    // Sanitize slug to prevent path traversal
+    const sanitizedSlug = sanitizeSlug(slug)
+    if (sanitizedSlug !== slug) {
+      console.warn(`Invalid slug detected: ${slug}`)
+      return null
+    }
+
+    const fullPath = path.join(postsDirectory, `${sanitizedSlug}.mdx`)
+    
+    // Validate path is within posts directory
+    if (!validatePath(fullPath)) {
+      console.warn(`Invalid path detected: ${fullPath}`)
+      return null
+    }
+
     if (!fs.existsSync(fullPath)) {
-      const mdPath = path.join(postsDirectory, `${slug}.md`)
+      const mdPath = path.join(postsDirectory, `${sanitizedSlug}.md`)
+      
+      // Validate MD path as well
+      if (!validatePath(mdPath)) {
+        return null
+      }
+      
       if (!fs.existsSync(mdPath)) {
         return null
       }
       const fileContents = fs.readFileSync(mdPath, 'utf8')
       const { data, content } = matter(fileContents)
       return {
-        slug,
+        slug: sanitizedSlug,
         title: data.title || 'Untitled',
         date: data.date || new Date().toISOString(),
         excerpt: data.excerpt || '',
@@ -77,7 +125,7 @@ export function getPostBySlug(slug: string): BlogPost | null {
     const { data, content } = matter(fileContents)
 
     return {
-      slug,
+      slug: sanitizedSlug,
       title: data.title || 'Untitled',
       date: data.date || new Date().toISOString(),
       excerpt: data.excerpt || '',

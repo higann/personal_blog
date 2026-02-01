@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { rateLimit, getClientIdentifier } from '@/lib/rateLimit'
+import { validateCsrfToken } from '@/lib/csrf'
 
 const contactSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  subject: z.string().min(3),
-  message: z.string().min(10),
+  name: z.string().min(2).max(100),
+  email: z.string().email().max(255),
+  subject: z.string().min(3).max(200),
+  message: z.string().min(10).max(5000),
   honeypot: z.string().max(0).optional(),
+  csrfToken: z.string().min(1),
 })
+
+// Maximum request body size: 10KB
+const MAX_REQUEST_SIZE = 10 * 1024
 
 /**
  * Contact Form API Route
@@ -23,9 +29,57 @@ const contactSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    // Rate limiting: 5 requests per 15 minutes per IP
+    const clientId = getClientIdentifier(request)
+    const rateLimitResult = rateLimit(clientId, 5, 15 * 60 * 1000)
+    
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Too many requests. Please try again later.',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
+          }
+        }
+      )
+    }
 
-    // Validate request
+    // Check request size
+    const contentLength = request.headers.get('content-length')
+    if (contentLength && parseInt(contentLength) > MAX_REQUEST_SIZE) {
+      return NextResponse.json(
+        { error: 'Request too large' },
+        { status: 413 }
+      )
+    }
+
+    // Parse and validate request body size
+    const text = await request.text()
+    if (text.length > MAX_REQUEST_SIZE) {
+      return NextResponse.json(
+        { error: 'Request too large' },
+        { status: 413 }
+      )
+    }
+
+    let body
+    try {
+      body = JSON.parse(text)
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON' },
+        { status: 400 }
+      )
+    }
+
+    // Validate request schema
     const validation = contactSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(
@@ -34,7 +88,16 @@ export async function POST(request: Request) {
       )
     }
 
-    const { name, email, subject, message, honeypot } = validation.data
+    const { name, email, subject, message, honeypot, csrfToken } = validation.data
+
+    // CSRF token validation
+    const isValidCsrf = await validateCsrfToken(csrfToken)
+    if (!isValidCsrf) {
+      return NextResponse.json(
+        { error: 'Invalid security token. Please refresh the page and try again.' },
+        { status: 403 }
+      )
+    }
 
     // Honeypot check
     if (honeypot && honeypot.length > 0) {
@@ -67,6 +130,12 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: 'Contact form API integration pending. See route file for implementation.',
+    }, {
+      headers: {
+        'X-RateLimit-Limit': '5',
+        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+        'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
+      }
     })
   } catch (error) {
     console.error('Error processing contact form:', error)
