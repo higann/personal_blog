@@ -68,7 +68,8 @@ export function getAllPosts(): BlogPost[] {
           readingTime: calculateReadingTime(content),
         }
       })
-      .filter((post): post is BlogPost => post !== null)
+      .filter((post): post is NonNullable<typeof post> => post !== null)
+
 
     return allPostsData.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime()
