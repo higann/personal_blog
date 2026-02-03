@@ -28,7 +28,7 @@ export interface BlogPost {
   date: string
   excerpt: string
   content: string
-  tags?: string[]
+  tags: string[]
   featuredImage?: string
   readingTime?: number
 }
@@ -69,7 +69,6 @@ export function getAllPosts(): BlogPost[] {
         }
       })
       .filter((post): post is NonNullable<typeof post> => post !== null)
-
 
     return allPostsData.sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime()
